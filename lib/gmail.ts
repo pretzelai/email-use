@@ -1,0 +1,123 @@
+import { google } from "googleapis";
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  `${process.env.BETTER_AUTH_URL}/api/gmail/callback`
+);
+
+// Scopes needed for Gmail access
+export const GMAIL_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.modify",
+];
+
+export function getGmailAuthUrl(state: string): string {
+  return oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: GMAIL_SCOPES,
+    prompt: "consent",
+    state,
+  });
+}
+
+export async function getGmailTokens(code: string) {
+  const { tokens } = await oauth2Client.getToken(code);
+  return tokens;
+}
+
+export async function refreshGmailTokens(refreshToken: string) {
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
+  const { credentials } = await oauth2Client.refreshAccessToken();
+  return credentials;
+}
+
+export function getGmailClient(accessToken: string) {
+  const auth = new google.auth.OAuth2();
+  auth.setCredentials({ access_token: accessToken });
+  return google.gmail({ version: "v1", auth });
+}
+
+export interface EmailMessage {
+  id: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  snippet: string;
+  body: string;
+  date: Date;
+}
+
+export async function fetchNewEmails(
+  accessToken: string,
+  maxResults: number = 10
+): Promise<EmailMessage[]> {
+  const gmail = getGmailClient(accessToken);
+
+  const response = await gmail.users.messages.list({
+    userId: "me",
+    maxResults,
+    q: "is:unread",
+  });
+
+  const messages = response.data.messages || [];
+  const emails: EmailMessage[] = [];
+
+  for (const msg of messages) {
+    const detail = await gmail.users.messages.get({
+      userId: "me",
+      id: msg.id!,
+      format: "full",
+    });
+
+    const headers = detail.data.payload?.headers || [];
+    const subject =
+      headers.find((h) => h.name === "Subject")?.value || "(No Subject)";
+    const from = headers.find((h) => h.name === "From")?.value || "Unknown";
+    const dateHeader = headers.find((h) => h.name === "Date")?.value;
+
+    // Extract body
+    let body = "";
+    const payload = detail.data.payload;
+
+    if (payload?.body?.data) {
+      body = Buffer.from(payload.body.data, "base64").toString("utf-8");
+    } else if (payload?.parts) {
+      const textPart = payload.parts.find(
+        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html"
+      );
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
+      }
+    }
+
+    emails.push({
+      id: msg.id!,
+      threadId: msg.threadId!,
+      subject,
+      from,
+      snippet: detail.data.snippet || "",
+      body,
+      date: dateHeader ? new Date(dateHeader) : new Date(),
+    });
+  }
+
+  return emails;
+}
+
+export async function markAsRead(accessToken: string, messageId: string) {
+  const gmail = getGmailClient(accessToken);
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      removeLabelIds: ["UNREAD"],
+    },
+  });
+}
+
+export async function getGmailProfile(accessToken: string) {
+  const gmail = getGmailClient(accessToken);
+  const profile = await gmail.users.getProfile({ userId: "me" });
+  return profile.data;
+}
