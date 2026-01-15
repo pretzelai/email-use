@@ -159,7 +159,10 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
         })
         .where(eq(gmailTokens.userId, userId));
     } catch (error) {
-      console.error(`Failed to refresh token for user ${userId}:`, error);
+      console.error(`Failed to refresh token for user ${userId}:`, {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return { ...results, error: "Failed to refresh Gmail token" };
     }
   }
@@ -181,16 +184,19 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
   // This prevents processing thousands of old unread emails
   const accountConnectedAt = gmailToken.createdAt || new Date();
 
-  // Fetch new emails (up to 20 per cron run, only after account connection)
+  // Fetch new emails (up to 10 per cron run, only after account connection)
   // Note: We fetch all emails (not just unread) since each prompt has its own skip filters
   let emails: EmailMessage[];
   try {
-    emails = await fetchNewEmails(accessToken, 20, {
+    emails = await fetchNewEmails(accessToken, 10, {
       afterDate: accountConnectedAt,
       unreadOnly: false,
     });
   } catch (error) {
-    console.error(`Failed to fetch emails for user ${userId}:`, error);
+    console.error(`Failed to fetch emails for user ${userId}:`, {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return { ...results, error: "Failed to fetch emails" };
   }
 
@@ -286,6 +292,14 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";
 
+        console.error(`Failed to process email "${email.subject}" with prompt "${prompt.name}":`, {
+          error: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+          emailId: email.id,
+          promptId: prompt.id,
+          userId,
+        });
+
         await db.insert(emailLogs).values({
           userId,
           promptId: prompt.id,
@@ -310,6 +324,8 @@ export const processEmailsTask = schedules.task({
   id: "process-emails-cron",
   // Run every 10 minutes
   cron: "*/10 * * * *",
+  // Use a larger machine to avoid memory issues
+  machine: "medium-1x",
   run: async () => {
     console.log("Starting scheduled email processing...");
 

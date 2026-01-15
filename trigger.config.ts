@@ -1,7 +1,7 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
-  project: "proj_revrgdndzlloniscwzjw",
+  project: "proj_vwvikhtvjrhzupkdfmxt",
   runtime: "node",
   logLevel: "log",
   maxDuration: 300, // 5 minutes max duration for tasks
