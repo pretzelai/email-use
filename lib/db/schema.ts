@@ -5,6 +5,7 @@ import {
   boolean,
   uuid,
   varchar,
+  json,
 } from "drizzle-orm/pg-core";
 
 // ============================================
@@ -80,6 +81,17 @@ export const prompts = pgTable("prompts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Type for actions executed by AI tools
+export type ActionExecuted = {
+  tool: string;
+  args: Record<string, unknown>;
+  result: {
+    success: boolean;
+    data?: unknown;
+    error?: string;
+  };
+};
+
 export const emailLogs = pgTable("email_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")
@@ -93,6 +105,7 @@ export const emailLogs = pgTable("email_logs", {
   emailFrom: varchar("email_from", { length: 255 }),
   emailSnippet: text("email_snippet"),
   aiResponse: text("ai_response"),
+  actionsExecuted: json("actions_executed").$type<ActionExecuted[]>(),
   status: varchar("status", { length: 50 }).default("pending"), // pending, processed, failed
   error: text("error"),
   processedAt: timestamp("processed_at"),

@@ -8,8 +8,8 @@ const oauth2Client = new google.auth.OAuth2(
 
 // Scopes needed for Gmail access
 export const GMAIL_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.send",
 ];
 
 export function getGmailAuthUrl(state: string): string {
@@ -120,4 +120,152 @@ export async function getGmailProfile(accessToken: string) {
   const gmail = getGmailClient(accessToken);
   const profile = await gmail.users.getProfile({ userId: "me" });
   return profile.data;
+}
+
+// Mark email as unread
+export async function markAsUnread(accessToken: string, messageId: string) {
+  const gmail = getGmailClient(accessToken);
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      addLabelIds: ["UNREAD"],
+    },
+  });
+}
+
+// Archive email (remove from inbox)
+export async function archiveEmail(accessToken: string, messageId: string) {
+  const gmail = getGmailClient(accessToken);
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      removeLabelIds: ["INBOX"],
+    },
+  });
+}
+
+// List all user labels
+export async function listLabels(accessToken: string) {
+  const gmail = getGmailClient(accessToken);
+  const response = await gmail.users.labels.list({ userId: "me" });
+  return response.data.labels || [];
+}
+
+// Get or create a label
+export async function getOrCreateLabel(
+  accessToken: string,
+  labelName: string
+): Promise<string> {
+  const gmail = getGmailClient(accessToken);
+
+  // First, try to find existing label
+  const labels = await listLabels(accessToken);
+  const existingLabel = labels.find(
+    (l) => l.name?.toLowerCase() === labelName.toLowerCase()
+  );
+
+  if (existingLabel?.id) {
+    return existingLabel.id;
+  }
+
+  // Create new label
+  const newLabel = await gmail.users.labels.create({
+    userId: "me",
+    requestBody: {
+      name: labelName,
+      labelListVisibility: "labelShow",
+      messageListVisibility: "show",
+    },
+  });
+
+  return newLabel.data.id!;
+}
+
+// Add label to email
+export async function addLabel(
+  accessToken: string,
+  messageId: string,
+  labelName: string
+) {
+  const gmail = getGmailClient(accessToken);
+  const labelId = await getOrCreateLabel(accessToken, labelName);
+
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      addLabelIds: [labelId],
+    },
+  });
+
+  return { labelId, labelName };
+}
+
+// Send email
+export async function sendEmail(
+  accessToken: string,
+  to: string,
+  subject: string,
+  body: string,
+  replyToMessageId?: string
+) {
+  const gmail = getGmailClient(accessToken);
+
+  // Get sender's email for the From header
+  const profile = await getGmailProfile(accessToken);
+  const from = profile.emailAddress;
+
+  // Build email headers
+  const headers = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    "Content-Type: text/plain; charset=utf-8",
+  ];
+
+  // If replying, add References and In-Reply-To headers
+  let threadId: string | undefined;
+  if (replyToMessageId) {
+    const originalMessage = await gmail.users.messages.get({
+      userId: "me",
+      id: replyToMessageId,
+      format: "metadata",
+      metadataHeaders: ["Message-ID"],
+    });
+
+    const messageIdHeader = originalMessage.data.payload?.headers?.find(
+      (h) => h.name === "Message-ID"
+    )?.value;
+
+    if (messageIdHeader) {
+      headers.push(`In-Reply-To: ${messageIdHeader}`);
+      headers.push(`References: ${messageIdHeader}`);
+    }
+
+    threadId = originalMessage.data.threadId || undefined;
+  }
+
+  // Build raw email
+  const emailContent = [...headers, "", body].join("\r\n");
+  const encodedEmail = Buffer.from(emailContent)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  // Send email
+  const response = await gmail.users.messages.send({
+    userId: "me",
+    requestBody: {
+      raw: encodedEmail,
+      threadId,
+    },
+  });
+
+  return {
+    messageId: response.data.id,
+    threadId: response.data.threadId,
+  };
 }

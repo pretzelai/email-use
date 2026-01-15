@@ -8,6 +8,13 @@
       "when": 1768407403196,
       "tag": "0000_square_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768474576901,
+      "tag": "0001_useful_bug",
+      "breakpoints": true
     }
   ]
 }
