@@ -120,6 +120,30 @@ export default function PrivacyPage() {
                   at any time.
                 </p>
               </Subsection>
+
+              <Subsection title="Testing Emails">
+                <p>
+                  If you choose to save emails as testing emails for prompt
+                  testing, we store:
+                </p>
+                <List
+                  items={[
+                    "Email metadata (subject line, sender address)",
+                    "Email snippet and full body content",
+                    "Gmail message and thread IDs",
+                    "Original email date",
+                  ]}
+                />
+                <p className="mt-3">
+                  Testing emails are{" "}
+                  <strong className="text-zinc-900 dark:text-white">
+                    only saved when you explicitly choose to save them
+                  </strong>
+                  . They are used to test how your prompts will respond before
+                  publishing them for automatic processing. You can delete
+                  individual testing emails or clear all of them at any time.
+                </p>
+              </Subsection>
             </Section>
 
             <Section number="2" title="How We Use Your Information">
@@ -129,6 +153,7 @@ export default function PrivacyPage() {
                   "Authenticate you and maintain your session",
                   "Connect to your Gmail account and fetch emails for processing",
                   "Send email content to AI providers (Anthropic or OpenAI) based on your configured prompts",
+                  "Store testing emails you save for prompt testing purposes",
                   "Display processing history and results",
                   "Improve our service",
                 ]}
@@ -205,6 +230,14 @@ export default function PrivacyPage() {
                     <tr>
                       <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">
                         Processing logs
+                      </td>
+                      <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">
+                        Until you delete them or delete your account
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">
+                        Testing emails
                       </td>
                       <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">
                         Until you delete them or delete your account

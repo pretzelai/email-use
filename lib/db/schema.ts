@@ -77,6 +77,7 @@ export const prompts = pgTable("prompts", {
   provider: varchar("provider", { length: 50 }).notNull(), // "anthropic" | "openai"
   model: varchar("model", { length: 100 }).notNull(),
   isActive: boolean("is_active").default(true),
+  isPublished: boolean("is_published").default(false), // Only published prompts are processed by trigger
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -127,6 +128,33 @@ export const gmailTokens = pgTable("gmail_tokens", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Skip filters for email addresses or domains
+export const userSkipFilters = pgTable("user_skip_filters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  filterType: varchar("filter_type", { length: 20 }).notNull(), // "email" | "domain"
+  value: varchar("value", { length: 255 }).notNull(), // e.g., "spam@example.com" or "example.com"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Testing emails for dry-run prompt testing
+export const testingEmails = pgTable("testing_emails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  gmailMessageId: text("gmail_message_id").notNull(),
+  threadId: text("thread_id").notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  fromAddress: varchar("from_address", { length: 255 }).notNull(),
+  snippet: text("snippet"),
+  body: text("body"),
+  emailDate: timestamp("email_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // ============================================
 // Type Exports
 // ============================================
@@ -139,3 +167,7 @@ export type NewPrompt = typeof prompts.$inferInsert;
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type NewEmailLog = typeof emailLogs.$inferInsert;
 export type GmailToken = typeof gmailTokens.$inferSelect;
+export type UserSkipFilter = typeof userSkipFilters.$inferSelect;
+export type NewUserSkipFilter = typeof userSkipFilters.$inferInsert;
+export type TestingEmail = typeof testingEmails.$inferSelect;
+export type NewTestingEmail = typeof testingEmails.$inferInsert;

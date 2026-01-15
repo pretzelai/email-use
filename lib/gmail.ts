@@ -50,14 +50,31 @@ export interface EmailMessage {
 
 export async function fetchNewEmails(
   accessToken: string,
-  maxResults: number = 10
+  maxResults: number = 10,
+  options?: {
+    afterDate?: Date; // Only fetch emails after this date
+    unreadOnly?: boolean; // Default true
+  }
 ): Promise<EmailMessage[]> {
   const gmail = getGmailClient(accessToken);
+
+  // Build query
+  const queryParts: string[] = [];
+
+  if (options?.unreadOnly !== false) {
+    queryParts.push("is:unread");
+  }
+
+  if (options?.afterDate) {
+    // Gmail uses epoch seconds for after: query
+    const epochSeconds = Math.floor(options.afterDate.getTime() / 1000);
+    queryParts.push(`after:${epochSeconds}`);
+  }
 
   const response = await gmail.users.messages.list({
     userId: "me",
     maxResults,
-    q: "is:unread",
+    q: queryParts.join(" ") || undefined,
   });
 
   const messages = response.data.messages || [];

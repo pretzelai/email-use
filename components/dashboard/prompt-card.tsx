@@ -29,7 +29,10 @@ export function PromptCard({ prompt, onDelete }: PromptCardProps) {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={prompt.isActive ? "success" : "secondary"}>
+            <Badge variant={prompt.isPublished ? "success" : "warning"}>
+              {prompt.isPublished ? "Published" : "Draft"}
+            </Badge>
+            <Badge variant={prompt.isActive ? "default" : "secondary"}>
               {prompt.isActive ? "Active" : "Inactive"}
             </Badge>
           </div>

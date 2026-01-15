@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -20,11 +21,13 @@ import type { Prompt } from "@/lib/db/schema";
 interface PromptFormProps {
   prompt?: Prompt;
   mode: "create" | "edit";
+  onPublishChange?: (isPublished: boolean) => void;
 }
 
-export function PromptForm({ prompt, mode }: PromptFormProps) {
+export function PromptForm({ prompt, mode, onPublishChange }: PromptFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [name, setName] = useState(prompt?.name || "");
@@ -37,10 +40,38 @@ export function PromptForm({ prompt, mode }: PromptFormProps) {
     prompt?.model || AVAILABLE_MODELS.anthropic[0].id
   );
   const [isActive, setIsActive] = useState(prompt?.isActive ?? true);
+  const [isPublished, setIsPublished] = useState(prompt?.isPublished ?? false);
 
   const handleProviderChange = (newProvider: AIProvider) => {
     setProvider(newProvider);
     setModel(AVAILABLE_MODELS[newProvider][0].id);
+  };
+
+  const handlePublishToggle = async () => {
+    if (!prompt?.id) return;
+
+    setPublishLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/prompts/${prompt.id}/publish`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished: !isPublished }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update publish status");
+      }
+
+      setIsPublished(!isPublished);
+      onPublishChange?.(!isPublished);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setPublishLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,12 +115,36 @@ export function PromptForm({ prompt, mode }: PromptFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>
-            {mode === "create" ? "Create New Prompt" : "Edit Prompt"}
-          </CardTitle>
-          <CardDescription>
-            Define how the AI should process your emails.
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>
+                {mode === "create" ? "Create New Prompt" : "Edit Prompt"}
+              </CardTitle>
+              <CardDescription>
+                Define how the AI should process your emails.
+              </CardDescription>
+            </div>
+            {mode === "edit" && (
+              <div className="flex items-center gap-2">
+                <Badge variant={isPublished ? "success" : "warning"}>
+                  {isPublished ? "Published" : "Draft"}
+                </Badge>
+                <Button
+                  type="button"
+                  variant={isPublished ? "outline" : "default"}
+                  size="sm"
+                  onClick={handlePublishToggle}
+                  disabled={publishLoading}
+                >
+                  {publishLoading
+                    ? "..."
+                    : isPublished
+                    ? "Unpublish"
+                    : "Publish"}
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -171,6 +226,14 @@ export function PromptForm({ prompt, mode }: PromptFormProps) {
               Active (process emails with this prompt)
             </Label>
           </div>
+
+          {mode === "edit" && (
+            <p className="text-xs text-zinc-500">
+              {isPublished
+                ? "This prompt is published and will process incoming emails automatically."
+                : "This prompt is in draft mode. Test it below, then publish when ready."}
+            </p>
+          )}
 
           {error && (
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

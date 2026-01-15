@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { PromptForm } from "@/components/dashboard/prompt-form";
+import { PromptTestingSection } from "@/components/dashboard/prompt-testing-section";
 import type { Prompt } from "@/lib/db/schema";
 
 export default function EditPromptPage({
@@ -31,6 +32,12 @@ export default function EditPromptPage({
     fetchPrompt();
   }, [id]);
 
+  const handlePublishChange = (isPublished: boolean) => {
+    if (prompt) {
+      setPrompt({ ...prompt, isPublished });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -48,8 +55,13 @@ export default function EditPromptPage({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PromptForm prompt={prompt} mode="edit" />
+    <div className="mx-auto max-w-2xl space-y-8">
+      <PromptForm
+        prompt={prompt}
+        mode="edit"
+        onPublishChange={handlePublishChange}
+      />
+      <PromptTestingSection promptId={prompt.id} />
     </div>
   );
 }
