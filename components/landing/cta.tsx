@@ -24,7 +24,7 @@ export function CTA() {
                 </Button>
               </Link>
               <a
-                href="https://github.com/yourusername/email-use"
+                href="https://github.com/pretzelai/email-use"
                 target="_blank"
                 rel="noopener noreferrer"
               >

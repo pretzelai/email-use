@@ -28,7 +28,7 @@ export function Footer() {
 
           <div className="flex items-center gap-6 text-sm text-zinc-600 dark:text-zinc-400">
             <a
-              href="https://github.com/yourusername/email-use"
+              href="https://github.com/pretzelai/email-use"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-zinc-900 dark:hover:text-white"
@@ -36,16 +36,16 @@ export function Footer() {
               GitHub
             </a>
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="hover:text-zinc-900 dark:hover:text-white"
             >
-              Privacy
+              Privacy Policy
             </Link>
             <Link
-              href="/terms"
+              href="/terms-of-service"
               className="hover:text-zinc-900 dark:hover:text-white"
             >
-              Terms
+              Terms of Service
             </Link>
           </div>
 

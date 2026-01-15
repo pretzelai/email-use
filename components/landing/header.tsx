@@ -35,7 +35,7 @@ export function Header() {
             Features
           </a>
           <a
-            href="https://github.com/yourusername/email-use"
+            href="https://github.com/pretzelai/email-use"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
@@ -43,7 +43,7 @@ export function Header() {
             GitHub
           </a>
           <a
-            href="https://github.com/yourusername/email-use#self-hosting"
+            href="https://github.com/pretzelai/email-use#self-hosting"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
