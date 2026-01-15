@@ -38,6 +38,7 @@ interface Prompt {
   description: string | null;
   provider: string;
   model: string;
+  isActive: boolean;
   isPublished: boolean;
 }
 
@@ -126,7 +127,7 @@ export default function EmailsPage() {
       const res = await fetch("/api/prompts");
       if (res.ok) {
         const data = await res.json();
-        setPrompts(data.filter((p: Prompt) => p.isPublished));
+        setPrompts(data);
       }
     } catch {
       // ignore
@@ -265,6 +266,7 @@ export default function EmailsPage() {
               {prompts.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
+                  {p.isPublished ? "" : " (draft)"}
                 </option>
               ))}
             </select>
@@ -275,9 +277,7 @@ export default function EmailsPage() {
                 processing || selectedIds.size === 0 || !selectedPromptId
               }
             >
-              {processing
-                ? "Processing..."
-                : `Process (${selectedIds.size})`}
+              {processing ? "Processing..." : `Process (${selectedIds.size})`}
             </Button>
             <span className="text-xs text-zinc-400">|</span>
             <Button size="xs" variant="outline" onClick={handleClear}>
@@ -297,7 +297,10 @@ export default function EmailsPage() {
           </div>
           <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {processResults.map((r) => (
-              <div key={r.emailId} className="flex items-center gap-2 px-3 py-2">
+              <div
+                key={r.emailId}
+                className="flex items-center gap-2 px-3 py-2"
+              >
                 <span
                   className={
                     r.status === "success" ? "text-green-600" : "text-red-600"
@@ -331,8 +334,8 @@ export default function EmailsPage() {
 
       {/* Email List */}
       {fetchedEmails.length > 0 && (
-        <div className="flex-1 overflow-hidden rounded border border-zinc-200 dark:border-zinc-800">
-          <div className="flex items-center gap-3 border-b border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-800/50">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded border border-zinc-200 dark:border-zinc-800">
+          <div className="flex shrink-0 items-center gap-3 border-b border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-800/50">
             <label className="flex items-center gap-1.5 text-sm">
               <input
                 type="checkbox"
@@ -343,10 +346,11 @@ export default function EmailsPage() {
               All
             </label>
             <span className="text-xs text-zinc-500">
-              {fetchedEmails.length} emails • {selectedIds.size} selected
+              {fetchedEmails.length} emails • {selectedIds.size} selected •
+              stored locally
             </span>
           </div>
-          <div className="max-h-[300px] divide-y divide-zinc-100 overflow-y-auto dark:divide-zinc-800">
+          <div className="flex-1 divide-y divide-zinc-100 overflow-y-auto dark:divide-zinc-800">
             {fetchedEmails.map((email) => (
               <div
                 key={email.id}
@@ -381,6 +385,9 @@ export default function EmailsPage() {
         <div className="rounded border border-dashed border-zinc-300 py-6 text-center dark:border-zinc-700">
           <p className="text-sm text-zinc-500">
             Click &quot;Fetch&quot; to load emails from Gmail
+          </p>
+          <p className="mt-1 text-xs text-zinc-400">
+            Emails are stored locally in your browser
           </p>
         </div>
       )}
@@ -529,7 +536,8 @@ export default function EmailsPage() {
             <div
               className="prose prose-sm dark:prose-invert max-w-none rounded bg-zinc-50 p-3 text-sm dark:bg-zinc-800"
               dangerouslySetInnerHTML={{
-                __html: previewEmail.body || previewEmail.snippet || "No content",
+                __html:
+                  previewEmail.body || previewEmail.snippet || "No content",
               }}
             />
           </div>
