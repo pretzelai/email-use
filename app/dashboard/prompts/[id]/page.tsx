@@ -728,14 +728,21 @@ export default function EditPromptPage({
                               {item.result.toolCalls.length > 0 && (
                                 <div>
                                   <p className="text-xs text-zinc-500">Tools</p>
-                                  <div className="mt-1 flex flex-wrap gap-1">
+                                  <div className="mt-1 space-y-1.5">
                                     {item.result.toolCalls.map((tc, i) => (
-                                      <span
+                                      <div
                                         key={i}
-                                        className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-400"
+                                        className="rounded bg-blue-50 p-2 dark:bg-blue-900/20"
                                       >
-                                        {tc.toolName}
-                                      </span>
+                                        <span className="font-mono text-xs font-medium text-blue-700 dark:text-blue-400">
+                                          {tc.toolName}
+                                        </span>
+                                        {Object.keys(tc.args).length > 0 && (
+                                          <pre className="mt-1 overflow-x-auto text-[11px] text-zinc-600 dark:text-zinc-400">
+                                            {JSON.stringify(tc.args, null, 2)}
+                                          </pre>
+                                        )}
+                                      </div>
                                     ))}
                                   </div>
                                 </div>
