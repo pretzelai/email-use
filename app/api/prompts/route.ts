@@ -48,7 +48,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, promptText, provider, model, isActive } = body;
+  const {
+    name,
+    description,
+    promptText,
+    provider,
+    model,
+    isActive,
+    skipArchived,
+    skipRead,
+    skipLabeled,
+    skipStarred,
+    skipImportant,
+  } = body;
 
   if (!name || !promptText || !provider || !model) {
     return NextResponse.json(
@@ -57,20 +69,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const [newPrompt] = await db
-    .insert(prompts)
-    .values({
-      userId: session.user.id,
-      name,
-      description,
-      promptText,
-      provider,
-      model,
-      isActive: isActive ?? true,
-    })
-    .returning();
+  try {
+    const [newPrompt] = await db
+      .insert(prompts)
+      .values({
+        userId: session.user.id,
+        name,
+        description,
+        promptText,
+        provider,
+        model,
+        isActive: isActive ?? true,
+        skipArchived: skipArchived ?? true,
+        skipRead: skipRead ?? true,
+        skipLabeled: skipLabeled ?? true,
+        skipStarred: skipStarred ?? false,
+        skipImportant: skipImportant ?? false,
+      })
+      .returning();
 
-  return NextResponse.json(newPrompt, { status: 201 });
+    return NextResponse.json(newPrompt, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create prompt:", error);
+    return NextResponse.json(
+      { error: "Failed to create prompt" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(request: NextRequest) {
@@ -87,27 +112,52 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, promptText, provider, model, isActive } = body;
+  const {
+    name,
+    description,
+    promptText,
+    provider,
+    model,
+    isActive,
+    skipArchived,
+    skipRead,
+    skipLabeled,
+    skipStarred,
+    skipImportant,
+  } = body;
 
-  const [updatedPrompt] = await db
-    .update(prompts)
-    .set({
-      name,
-      description,
-      promptText,
-      provider,
-      model,
-      isActive,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(prompts.id, id), eq(prompts.userId, session.user.id)))
-    .returning();
+  try {
+    const [updatedPrompt] = await db
+      .update(prompts)
+      .set({
+        name,
+        description,
+        promptText,
+        provider,
+        model,
+        isActive,
+        skipArchived,
+        skipRead,
+        skipLabeled,
+        skipStarred,
+        skipImportant,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(prompts.id, id), eq(prompts.userId, session.user.id)))
+      .returning();
 
-  if (!updatedPrompt) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!updatedPrompt) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedPrompt);
+  } catch (error) {
+    console.error("Failed to update prompt:", error);
+    return NextResponse.json(
+      { error: "Failed to update prompt" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(updatedPrompt);
 }
 
 export async function DELETE(request: NextRequest) {

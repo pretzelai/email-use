@@ -7,6 +7,26 @@ import { formatDate } from "@/lib/utils";
 
 const STORAGE_KEY = "email-use-fetched-emails";
 
+// System labels to hide from display
+const HIDDEN_LABELS = new Set([
+  "INBOX",
+  "UNREAD",
+  "SENT",
+  "DRAFT",
+  "SPAM",
+  "TRASH",
+  "CATEGORY_PERSONAL",
+  "CATEGORY_SOCIAL",
+  "CATEGORY_PROMOTIONS",
+  "CATEGORY_UPDATES",
+  "CATEGORY_FORUMS",
+]);
+
+function formatLabel(label: string): string {
+  // Format label for display (e.g., "Label_My-Label" -> "My Label")
+  return label.replace(/^Label_/i, "").replace(/[-_]/g, " ");
+}
+
 interface EmailLog {
   id: string;
   gmailMessageId: string;
@@ -30,6 +50,7 @@ interface FetchedEmail {
   snippet: string;
   body: string;
   date: string;
+  labelIds: string[];
 }
 
 interface Prompt {
@@ -366,12 +387,25 @@ export default function EmailsPage() {
                   className="min-w-0 flex-1 cursor-pointer"
                   onClick={() => setPreviewEmail(email)}
                 >
-                  <p className="truncate text-sm text-zinc-800 dark:text-zinc-200">
-                    {email.subject || "(No Subject)"}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm text-zinc-800 dark:text-zinc-200">
+                      {email.subject || "(No Subject)"}
+                    </p>
+                    {email.labelIds
+                      ?.filter((l) => !HIDDEN_LABELS.has(l))
+                      .slice(0, 3)
+                      .map((label) => (
+                        <span
+                          key={label}
+                          className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                        >
+                          {formatLabel(label)}
+                        </span>
+                      ))}
+                  </div>
                   <p className="truncate text-xs text-zinc-500">{email.from}</p>
                 </div>
-                <span className="text-xs text-zinc-400">
+                <span className="shrink-0 text-xs text-zinc-400">
                   {formatDate(email.date)}
                 </span>
               </div>
@@ -525,6 +559,21 @@ export default function EmailsPage() {
                 <p className="text-xs text-zinc-400">
                   {formatDate(previewEmail.date)}
                 </p>
+                {previewEmail.labelIds?.filter((l) => !HIDDEN_LABELS.has(l))
+                  .length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {previewEmail.labelIds
+                      .filter((l) => !HIDDEN_LABELS.has(l))
+                      .map((label) => (
+                        <span
+                          key={label}
+                          className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                        >
+                          {formatLabel(label)}
+                        </span>
+                      ))}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setPreviewEmail(null)}

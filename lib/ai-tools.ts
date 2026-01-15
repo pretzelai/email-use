@@ -51,6 +51,17 @@ export const gmailTools = {
       "Mark the email as unread. Use this if the email needs attention later.",
     inputSchema: zodSchema(z.object({})),
   }),
+
+  starEmail: tool({
+    description:
+      "Star the email to mark it as important or for follow-up. Starred emails appear in the Starred folder in Gmail.",
+    inputSchema: zodSchema(z.object({})),
+  }),
+
+  unstarEmail: tool({
+    description: "Remove the star from the email.",
+    inputSchema: zodSchema(z.object({})),
+  }),
 };
 
 export type GmailToolName = keyof typeof gmailTools;

@@ -4,6 +4,8 @@ import {
   archiveEmail,
   markAsRead,
   markAsUnread,
+  starEmail,
+  unstarEmail,
 } from "./gmail";
 import type { ToolCallResult } from "./ai-tools";
 
@@ -78,6 +80,24 @@ export async function executeGmailTool(
 
       case "markAsUnread": {
         await markAsUnread(accessToken, email.id);
+        return {
+          tool: toolName,
+          args,
+          result: { success: true },
+        };
+      }
+
+      case "starEmail": {
+        await starEmail(accessToken, email.id);
+        return {
+          tool: toolName,
+          args,
+          result: { success: true },
+        };
+      }
+
+      case "unstarEmail": {
+        await unstarEmail(accessToken, email.id);
         return {
           tool: toolName,
           args,

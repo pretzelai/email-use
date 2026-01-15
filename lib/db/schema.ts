@@ -78,6 +78,12 @@ export const prompts = pgTable("prompts", {
   model: varchar("model", { length: 100 }).notNull(),
   isActive: boolean("is_active").default(true),
   isPublished: boolean("is_published").default(false), // Only published prompts are processed by trigger
+  // Skip filters for email processing
+  skipArchived: boolean("skip_archived").default(true), // Skip emails not in INBOX
+  skipRead: boolean("skip_read").default(true), // Skip emails that are read
+  skipLabeled: boolean("skip_labeled").default(true), // Skip emails with custom labels
+  skipStarred: boolean("skip_starred").default(false), // Skip starred emails
+  skipImportant: boolean("skip_important").default(false), // Skip important emails
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

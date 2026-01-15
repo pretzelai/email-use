@@ -46,6 +46,13 @@ export default function EditPromptPage({
   const [isActive, setIsActive] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
 
+  // Skip filters
+  const [skipArchived, setSkipArchived] = useState(true);
+  const [skipRead, setSkipRead] = useState(true);
+  const [skipLabeled, setSkipLabeled] = useState(true);
+  const [skipStarred, setSkipStarred] = useState(false);
+  const [skipImportant, setSkipImportant] = useState(false);
+
   // Testing state
   const [testingEmails, setTestingEmails] = useState<TestingEmail[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -79,6 +86,12 @@ export default function EditPromptPage({
           setModel(p.model);
           setIsActive(p.isActive ?? true);
           setIsPublished(p.isPublished ?? false);
+          // Skip filters
+          setSkipArchived(p.skipArchived ?? true);
+          setSkipRead(p.skipRead ?? true);
+          setSkipLabeled(p.skipLabeled ?? true);
+          setSkipStarred(p.skipStarred ?? false);
+          setSkipImportant(p.skipImportant ?? false);
         }
 
         if (emailsRes.ok) {
@@ -172,6 +185,11 @@ export default function EditPromptPage({
           provider,
           model,
           isActive,
+          skipArchived,
+          skipRead,
+          skipLabeled,
+          skipStarred,
+          skipImportant,
         }),
       });
 
@@ -424,6 +442,60 @@ export default function EditPromptPage({
                       className="h-3.5 w-3.5 rounded border-zinc-300"
                     />
                     Active
+                  </label>
+                </div>
+              </div>
+
+              {/* Skip Filters */}
+              <div>
+                <label className="text-xs text-zinc-500">
+                  Skip emails that are:
+                </label>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                  <label className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={skipArchived}
+                      onChange={(e) => setSkipArchived(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-zinc-300"
+                    />
+                    Archived
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={skipRead}
+                      onChange={(e) => setSkipRead(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-zinc-300"
+                    />
+                    Read
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={skipLabeled}
+                      onChange={(e) => setSkipLabeled(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-zinc-300"
+                    />
+                    Already labeled
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={skipStarred}
+                      onChange={(e) => setSkipStarred(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-zinc-300"
+                    />
+                    Starred
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={skipImportant}
+                      onChange={(e) => setSkipImportant(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-zinc-300"
+                    />
+                    Important
                   </label>
                 </div>
               </div>

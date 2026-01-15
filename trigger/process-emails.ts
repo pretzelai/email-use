@@ -70,6 +70,70 @@ async function isEmailProcessed(
   return !!existing;
 }
 
+// System labels that don't count as "custom labels"
+const SYSTEM_LABELS = new Set([
+  "INBOX",
+  "UNREAD",
+  "SENT",
+  "DRAFT",
+  "SPAM",
+  "TRASH",
+  "STARRED",
+  "IMPORTANT",
+  "CATEGORY_PERSONAL",
+  "CATEGORY_SOCIAL",
+  "CATEGORY_PROMOTIONS",
+  "CATEGORY_UPDATES",
+  "CATEGORY_FORUMS",
+]);
+
+// Check if email should be skipped based on prompt's skip filters
+function shouldSkipByPromptFilters(
+  email: EmailMessage,
+  prompt: {
+    skipArchived?: boolean | null;
+    skipRead?: boolean | null;
+    skipLabeled?: boolean | null;
+    skipStarred?: boolean | null;
+    skipImportant?: boolean | null;
+  }
+): { skip: boolean; reason?: string } {
+  const labels = email.labelIds || [];
+
+  // Skip archived (not in INBOX)
+  if (prompt.skipArchived && !labels.includes("INBOX")) {
+    return { skip: true, reason: "Email is archived (not in INBOX)" };
+  }
+
+  // Skip read (no UNREAD label)
+  if (prompt.skipRead && !labels.includes("UNREAD")) {
+    return { skip: true, reason: "Email is already read" };
+  }
+
+  // Skip starred
+  if (prompt.skipStarred && labels.includes("STARRED")) {
+    return { skip: true, reason: "Email is starred" };
+  }
+
+  // Skip important
+  if (prompt.skipImportant && labels.includes("IMPORTANT")) {
+    return { skip: true, reason: "Email is marked as important" };
+  }
+
+  // Skip already labeled (has custom labels)
+  if (prompt.skipLabeled) {
+    const customLabels = labels.filter((l) => !SYSTEM_LABELS.has(l));
+    if (customLabels.length > 0) {
+      return {
+        skip: true,
+        reason: `Email already has labels: ${customLabels.join(", ")}`,
+      };
+    }
+  }
+
+  return { skip: false };
+}
+
 // Process a single user's emails
 async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.$inferSelect) {
   const results = {
@@ -118,11 +182,12 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
   const accountConnectedAt = gmailToken.createdAt || new Date();
 
   // Fetch new emails (up to 20 per cron run, only after account connection)
+  // Note: We fetch all emails (not just unread) since each prompt has its own skip filters
   let emails: EmailMessage[];
   try {
     emails = await fetchNewEmails(accessToken, 20, {
       afterDate: accountConnectedAt,
-      unreadOnly: true,
+      unreadOnly: false,
     });
   } catch (error) {
     console.error(`Failed to fetch emails for user ${userId}:`, error);
@@ -158,6 +223,25 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
 
     // Process with each active prompt
     for (const prompt of userPrompts) {
+      // Check prompt-specific skip filters
+      const promptSkipCheck = shouldSkipByPromptFilters(email, prompt);
+      if (promptSkipCheck.skip) {
+        // Log as skipped for this prompt
+        await db.insert(emailLogs).values({
+          userId,
+          promptId: prompt.id,
+          gmailMessageId: email.id,
+          emailSubject: email.subject,
+          emailFrom: email.from,
+          emailSnippet: email.snippet,
+          status: "skipped",
+          error: promptSkipCheck.reason,
+          createdAt: new Date(),
+        });
+        results.skipped++;
+        continue;
+      }
+
       try {
         // Get AI response with tool calls
         const aiResult = await processEmailWithTools({

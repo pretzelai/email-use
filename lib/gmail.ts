@@ -46,6 +46,7 @@ export interface EmailMessage {
   snippet: string;
   body: string;
   date: Date;
+  labelIds: string[];
 }
 
 export async function fetchNewEmails(
@@ -116,6 +117,7 @@ export async function fetchNewEmails(
       snippet: detail.data.snippet || "",
       body,
       date: dateHeader ? new Date(dateHeader) : new Date(),
+      labelIds: detail.data.labelIds || [],
     });
   }
 
@@ -147,6 +149,30 @@ export async function markAsUnread(accessToken: string, messageId: string) {
     id: messageId,
     requestBody: {
       addLabelIds: ["UNREAD"],
+    },
+  });
+}
+
+// Star email
+export async function starEmail(accessToken: string, messageId: string) {
+  const gmail = getGmailClient(accessToken);
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      addLabelIds: ["STARRED"],
+    },
+  });
+}
+
+// Unstar email
+export async function unstarEmail(accessToken: string, messageId: string) {
+  const gmail = getGmailClient(accessToken);
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      removeLabelIds: ["STARRED"],
     },
   });
 }
