@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "email-use - Process Emails with AI",
   description:
     "Connect your Gmail, write custom prompts, and let AI process your emails automatically. Open source and self-hostable.",
+  icons: {
+    icon: "/email-use-icon.png",
+    apple: "/email-use-icon.png",
+  },
 };
 
 export default function RootLayout({
