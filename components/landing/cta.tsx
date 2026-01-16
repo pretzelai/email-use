@@ -8,11 +8,11 @@ export function CTA() {
         <div className="relative overflow-hidden rounded-3xl bg-zinc-900 px-6 py-20 dark:bg-zinc-800 sm:px-12 sm:py-28">
           <div className="relative mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to automate your inbox?
+              Stop sorting. Start writing.
             </h2>
             <p className="mt-4 text-lg text-zinc-300">
-              Start processing emails with AI in minutes. No credit card
-              required.
+              One prompt. Every email handled. Write your rules in plain English
+              and take back your inbox.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/sign-up">

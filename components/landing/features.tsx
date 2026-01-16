@@ -1,28 +1,8 @@
 const features = [
   {
-    title: "Multiple AI Providers",
+    title: "Plain English Rules",
     description:
-      "Use Claude (Anthropic), GPT-4 (OpenAI), or switch between them. Bring your own API keys.",
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Custom Prompts",
-    description:
-      "Write prompts tailored to your workflow. Categorize, summarize, extract data, or draft replies.",
+      "Write rules like you'd explain to an assistant: \"If it's from my boss, mark important. If it's a newsletter, archive it.\"",
     icon: (
       <svg
         className="h-6 w-6"
@@ -40,9 +20,9 @@ const features = [
     ),
   },
   {
-    title: "Gmail Integration",
+    title: "Full Email Actions",
     description:
-      "Securely connect your Gmail account. We only read emails you want processed.",
+      "Reply to emails, categorize with labels, archive, mark as read or unread - all the actions you'd expect from Gmail, automated.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -60,9 +40,9 @@ const features = [
     ),
   },
   {
-    title: "Self-Hostable",
+    title: "Iterate Anytime",
     description:
-      "Run on your own infrastructure. Keep your data private. MIT licensed and open source.",
+      "Your inbox evolves, so should your rules. Add new clauses, tweak conditions, or refine your prompt whenever you need.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -74,47 +54,7 @@ const features = [
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Processing History",
-    description:
-      "View all processed emails and AI responses. Search, filter, and export your data.",
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Future: Tool Calls",
-    description:
-      "Coming soon: Let AI take actions like sending Slack notifications or creating tasks.",
-    icon: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"
+          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
         />
       </svg>
     ),
@@ -127,10 +67,10 @@ export function Features() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-            Everything you need
+            One prompt to manage it all
           </h2>
           <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-            Powerful features for automating your email workflow
+            Write your rules once. Applied to every email. Refined over time.
           </p>
         </div>
 

@@ -7,15 +7,15 @@ export function Hero() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-6xl">
-            Process emails with{" "}
+            Manage your inbox with{" "}
             <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              AI prompts
+              plain English
             </span>
           </h1>
           <p className="mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Connect your Gmail, write custom prompts, and let AI process your
-            emails automatically. Use Claude, GPT-4, or any model you prefer.
-            Open source and self-hostable.
+            Write one prompt to rule all your emails. Categorize, archive,
+            reply, and more - automatically applied to every email that arrives.
+            Iterate your rules anytime. Test before deploying.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/sign-up">
