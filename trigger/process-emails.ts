@@ -145,10 +145,22 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
 
   // Refresh token if expired
   let accessToken = gmailToken.accessToken;
-  if (new Date() >= gmailToken.expiresAt) {
+  const tokenExpired = new Date() >= new Date(gmailToken.expiresAt);
+
+  console.log(`Token status for user ${userId}:`, {
+    expired: tokenExpired,
+    expiresAt: gmailToken.expiresAt,
+    now: new Date().toISOString(),
+    hasRefreshToken: !!gmailToken.refreshToken,
+    refreshTokenLength: gmailToken.refreshToken?.length,
+  });
+
+  if (tokenExpired) {
     try {
+      console.log(`Attempting to refresh token for user ${userId}...`);
       const newTokens = await refreshGmailTokens(gmailToken.refreshToken);
       accessToken = newTokens.access_token!;
+      console.log(`Token refreshed successfully for user ${userId}`);
 
       await db
         .update(gmailTokens)
@@ -159,11 +171,21 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
         })
         .where(eq(gmailTokens.userId, userId));
     } catch (error) {
+      const errorDetails = error instanceof Error ? error.message : String(error);
       console.error(`Failed to refresh token for user ${userId}:`, {
-        error: error instanceof Error ? error.message : error,
+        error: errorDetails,
         stack: error instanceof Error ? error.stack : undefined,
+        // Common causes:
+        // - "invalid_grant" = refresh token expired/revoked (app in testing mode, user revoked, password changed)
+        // - "invalid_client" = OAuth credentials misconfigured
       });
-      return { ...results, error: "Failed to refresh Gmail token" };
+
+      // If token is invalid, we should mark it so user can re-authenticate
+      if (errorDetails.includes("invalid_grant")) {
+        console.error(`User ${userId} needs to re-authenticate. Refresh token is no longer valid.`);
+      }
+
+      return { ...results, error: `Failed to refresh Gmail token: ${errorDetails}` };
     }
   }
 
