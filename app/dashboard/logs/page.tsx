@@ -86,6 +86,9 @@ export default function LogsPage() {
               <thead className="sticky top-0">
                 <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
                   <th className="px-3 py-2 text-left text-xs font-medium text-zinc-500">
+                    Gmail
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-zinc-500">
                     Subject
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-zinc-500">
@@ -106,6 +109,17 @@ export default function LogsPage() {
                     onClick={() => setSelectedLogId(log.id)}
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   >
+                    <td className="px-3 py-2">
+                      <a
+                        href={`https://mail.google.com/mail/u/0/#inbox/${log.gmailMessageId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-block rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+                      >
+                        Open in Gmail
+                      </a>
+                    </td>
                     <td className="px-3 py-2">
                       {log.emailSubject ? (
                         <span className="text-zinc-800 dark:text-zinc-200">
