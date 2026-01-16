@@ -121,7 +121,21 @@ export function AuthForm({ mode }: AuthFormProps) {
       </p>
 
       <p className="text-center text-xs text-zinc-500">
-        By continuing, you agree to our Terms of Service and Privacy Policy.
+        By continuing, you agree to our{" "}
+        <Link
+          href="/terms-of-service"
+          className="underline hover:text-zinc-700 dark:hover:text-zinc-300"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy-policy"
+          className="underline hover:text-zinc-700 dark:hover:text-zinc-300"
+        >
+          Privacy Policy
+        </Link>
+        .
       </p>
     </div>
   );
