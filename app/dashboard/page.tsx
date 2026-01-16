@@ -79,7 +79,7 @@ export default function DashboardPage() {
             <CardDescription>View processed emails</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/dashboard/emails">
+            <Link href="/dashboard/logs">
               <Button variant="outline" className="w-full">
                 View Logs
               </Button>
