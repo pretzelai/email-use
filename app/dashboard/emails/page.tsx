@@ -464,9 +464,15 @@ export default function EmailsPage() {
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   >
                     <td className="px-3 py-1.5">
-                      <span className="text-zinc-800 dark:text-zinc-200">
-                        {log.emailSubject || "(No Subject)"}
-                      </span>
+                      {log.emailSubject ? (
+                        <span className="text-zinc-800 dark:text-zinc-200">
+                          {log.emailSubject}
+                        </span>
+                      ) : (
+                        <span className="italic text-zinc-400">
+                          No details stored
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-1.5 text-zinc-500">
                       {log.promptName || "—"}
@@ -516,6 +522,23 @@ export default function EmailsPage() {
               </button>
             </div>
 
+            {!selectedLog.emailSubject && !selectedLog.emailSnippet ? (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <strong>No details stored.</strong> Email content is not saved when debug mode is disabled.
+                </p>
+                <p className="mt-2 text-xs text-zinc-500">
+                  To store email subjects, snippets, and AI responses, enable{" "}
+                  <span className="font-medium">Debug Mode</span> in Settings.
+                </p>
+              </div>
+              <div className="flex gap-3 text-xs text-zinc-500">
+                <span>Prompt: {selectedLog.promptName || "—"}</span>
+                <span>Processed: {formatDate(selectedLog.processedAt)}</span>
+              </div>
+            </div>
+          ) : (
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-zinc-500">Snippet</p>
@@ -536,6 +559,7 @@ export default function EmailsPage() {
                 <span>Processed: {formatDate(selectedLog.processedAt)}</span>
               </div>
             </div>
+          )}
           </div>
         </div>
       )}

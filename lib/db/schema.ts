@@ -161,6 +161,19 @@ export const testingEmails = pgTable("testing_emails", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const userSettings = pgTable("user_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" })
+    .unique(),
+  // When false (default), we don't store email subjects, snippets, or AI responses
+  // Only email IDs are stored for processing history
+  debugMode: boolean("debug_mode").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ============================================
 // Type Exports
 // ============================================
@@ -177,3 +190,5 @@ export type UserSkipFilter = typeof userSkipFilters.$inferSelect;
 export type NewUserSkipFilter = typeof userSkipFilters.$inferInsert;
 export type TestingEmail = typeof testingEmails.$inferSelect;
 export type NewTestingEmail = typeof testingEmails.$inferInsert;
+export type UserSettings = typeof userSettings.$inferSelect;
+export type NewUserSettings = typeof userSettings.$inferInsert;

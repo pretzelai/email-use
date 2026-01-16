@@ -108,16 +108,32 @@ export default function PrivacyPage() {
                 <p>When emails are processed, we store:</p>
                 <List
                   items={[
-                    "Email metadata (subject line, sender address)",
-                    "A brief snippet of the email content",
-                    "The AI-generated response",
+                    "Email ID (a unique identifier)",
                     "Timestamp of processing",
+                    "Processing status (success or failure)",
                   ]}
                 />
                 <p className="mt-3">
-                  This information is stored to provide you with a history of
-                  processed emails and their results. You can delete this data
-                  at any time.
+                  By default, we do{" "}
+                  <strong className="text-zinc-900 dark:text-white">not</strong>{" "}
+                  store email subjects, snippets, or AI responses. This ensures
+                  your email content remains private.
+                </p>
+                <p className="mt-3">
+                  If you enable <strong>Debug Mode</strong> in Settings, we will
+                  additionally store:
+                </p>
+                <List
+                  items={[
+                    "Email subject line",
+                    "Sender address",
+                    "A brief snippet of the email",
+                    "The AI-generated response",
+                  ]}
+                />
+                <p className="mt-3">
+                  Debug mode is intended for troubleshooting and is disabled by
+                  default. You can enable or disable it at any time in Settings.
                 </p>
               </Subsection>
 

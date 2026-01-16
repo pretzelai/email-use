@@ -5,6 +5,7 @@ import {
   prompts,
   emailLogs,
   userSkipFilters,
+  userSettings,
 } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import {
@@ -143,6 +144,12 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
     alreadyProcessed: 0,
   };
 
+  // Check if user has debug mode enabled
+  const settings = await db.query.userSettings.findFirst({
+    where: eq(userSettings.userId, userId),
+  });
+  const debugMode = settings?.debugMode ?? false;
+
   // Refresh token if expired
   let accessToken = gmailToken.accessToken;
   const tokenExpired = new Date() >= new Date(gmailToken.expiresAt);
@@ -238,9 +245,10 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
       await db.insert(emailLogs).values({
         userId,
         gmailMessageId: email.id,
-        emailSubject: email.subject,
-        emailFrom: email.from,
-        emailSnippet: email.snippet,
+        // Only store email content if debug mode is enabled
+        emailSubject: debugMode ? email.subject : null,
+        emailFrom: debugMode ? email.from : null,
+        emailSnippet: debugMode ? email.snippet : null,
         status: "skipped",
         error: skipCheck.reason,
         createdAt: new Date(),
@@ -259,9 +267,10 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
           userId,
           promptId: prompt.id,
           gmailMessageId: email.id,
-          emailSubject: email.subject,
-          emailFrom: email.from,
-          emailSnippet: email.snippet,
+          // Only store email content if debug mode is enabled
+          emailSubject: debugMode ? email.subject : null,
+          emailFrom: debugMode ? email.from : null,
+          emailSnippet: debugMode ? email.snippet : null,
           status: "skipped",
           error: promptSkipCheck.reason,
           createdAt: new Date(),
@@ -300,10 +309,11 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
           userId,
           promptId: prompt.id,
           gmailMessageId: email.id,
-          emailSubject: email.subject,
-          emailFrom: email.from,
-          emailSnippet: email.snippet,
-          aiResponse: aiResult.text,
+          // Only store email content if debug mode is enabled
+          emailSubject: debugMode ? email.subject : null,
+          emailFrom: debugMode ? email.from : null,
+          emailSnippet: debugMode ? email.snippet : null,
+          aiResponse: debugMode ? aiResult.text : null,
           actionsExecuted: executedActions,
           status: "processed",
           processedAt: new Date(),
@@ -326,9 +336,10 @@ async function processUserEmails(userId: string, gmailToken: typeof gmailTokens.
           userId,
           promptId: prompt.id,
           gmailMessageId: email.id,
-          emailSubject: email.subject,
-          emailFrom: email.from,
-          emailSnippet: email.snippet,
+          // Only store email content if debug mode is enabled
+          emailSubject: debugMode ? email.subject : null,
+          emailFrom: debugMode ? email.from : null,
+          emailSnippet: debugMode ? email.snippet : null,
           status: "failed",
           error: errorMessage,
         });

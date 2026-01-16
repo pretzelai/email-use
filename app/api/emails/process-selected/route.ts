@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { gmailTokens, prompts, emailLogs } from "@/lib/db/schema";
+import { gmailTokens, prompts, emailLogs, userSettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { refreshGmailTokens } from "@/lib/gmail";
 import { processEmailWithTools, type AIProvider } from "@/lib/ai";
@@ -80,6 +80,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Check if user has debug mode enabled
+  const settings = await db.query.userSettings.findFirst({
+    where: eq(userSettings.userId, session.user.id),
+  });
+  const debugMode = settings?.debugMode ?? false;
+
   let accessToken = gmailToken.accessToken;
 
   // Refresh token if expired
@@ -138,10 +144,11 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         promptId: prompt.id,
         gmailMessageId: email.id,
-        emailSubject: email.subject,
-        emailFrom: email.from,
-        emailSnippet: email.body.slice(0, 500),
-        aiResponse: aiResult.text,
+        // Only store email content if debug mode is enabled
+        emailSubject: debugMode ? email.subject : null,
+        emailFrom: debugMode ? email.from : null,
+        emailSnippet: debugMode ? email.body.slice(0, 500) : null,
+        aiResponse: debugMode ? aiResult.text : null,
         actionsExecuted: executedActions,
         status: "processed",
         processedAt: new Date(),
@@ -164,9 +171,10 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         promptId: prompt.id,
         gmailMessageId: email.id,
-        emailSubject: email.subject,
-        emailFrom: email.from,
-        emailSnippet: email.body.slice(0, 500),
+        // Only store email content if debug mode is enabled
+        emailSubject: debugMode ? email.subject : null,
+        emailFrom: debugMode ? email.from : null,
+        emailSnippet: debugMode ? email.body.slice(0, 500) : null,
         status: "failed",
         error: errorMessage,
       });
