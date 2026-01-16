@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 
 export function Hero() {
+  const { data: session } = useSession();
+
   return (
     <section className="relative overflow-hidden py-20 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -18,11 +23,19 @@ export function Hero() {
             Iterate your rules anytime. Test before deploying.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href="/sign-up">
-              <Button size="lg" className="w-full sm:w-auto">
-                Get Started Free
-              </Button>
-            </Link>
+            {session?.user ? (
+              <Link href="/dashboard">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/sign-up">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Get Started Free
+                </Button>
+              </Link>
+            )}
             <a
               href="https://github.com/pretzelai/email-use"
               target="_blank"
