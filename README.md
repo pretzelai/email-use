@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# email-use
+
+Manage your inbox with plain English. Write one prompt to handle all your emails - categorize, archive, reply, and more.
+
+## What it does
+
+Email Use lets you write a system prompt that gets applied to every incoming email. Instead of creating complex filters or rules, you describe what you want in natural language:
+
+```
+For each email:
+- If it's from my team (@company.com), mark as important
+- If it's a newsletter or marketing, archive immediately
+- If someone is asking for a meeting, draft a polite reply asking for an agenda
+- If it contains an invoice, label as "Finance"
+```
+
+The AI handles the rest - categorizing, archiving, replying, marking as read/unread, and applying labels automatically.
+
+## Features
+
+- **Plain English rules** - Write conditions like you'd explain to an assistant
+- **Full email actions** - Reply, categorize, archive, mark read/unread, apply labels
+- **Iterate anytime** - Refine your prompt as your needs change
+- **Back-test your rules** - Test against past emails before deploying
+- **Multiple AI providers** - Use Claude, GPT-4, or bring your own API keys
+- **Self-hostable** - Run on your own infrastructure, MIT licensed
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A Gmail account
+- API key from Anthropic (Claude) or OpenAI (GPT-4)
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Clone the repo
+git clone https://github.com/pretzelai/email-use.git
+cd email-use
+
+# Install dependencies
+bun install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys and database URL
+
+# Run database migrations
+bunx drizzle-kit push
+
+# Start the development server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to get started.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+DATABASE_URL=           # PostgreSQL connection string
+GOOGLE_CLIENT_ID=       # Google OAuth client ID
+GOOGLE_CLIENT_SECRET=   # Google OAuth client secret
+ANTHROPIC_API_KEY=      # Optional: Anthropic API key for Claude
+OPENAI_API_KEY=         # Optional: OpenAI API key for GPT-4
+```
 
-## Learn More
+## How it works
 
-To learn more about Next.js, take a look at the following resources:
+1. **Connect your Gmail** - Securely authenticate with Google OAuth
+2. **Write your prompt** - Describe how you want emails handled in plain English
+3. **Test it** - Back-test against existing emails to verify behavior
+4. **Deploy** - Enable the prompt to process incoming emails automatically
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Emails are processed in real-time as they arrive. You can view all processed emails and the actions taken in the dashboard.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+- [Next.js](https://nextjs.org) - React framework
+- [Drizzle ORM](https://orm.drizzle.team) - Database ORM
+- [Better Auth](https://better-auth.com) - Authentication
+- [Tailwind CSS](https://tailwindcss.com) - Styling
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
