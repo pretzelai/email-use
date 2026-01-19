@@ -22,6 +22,8 @@
     "pg": "^8.16.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "stripe": "^20.2.0",
+    "stripe-no-webhooks": "^0.0.12",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

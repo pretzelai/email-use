@@ -124,6 +124,99 @@ export async function fetchNewEmails(
   return emails;
 }
 
+// Fetch all new emails with pagination (for discovery task)
+export async function fetchAllNewEmails(
+  accessToken: string,
+  options?: {
+    afterDate?: Date;
+    unreadOnly?: boolean;
+    maxEmails?: number; // Safety limit, defaults to 100
+  }
+): Promise<EmailMessage[]> {
+  const gmail = getGmailClient(accessToken);
+  const maxEmails = options?.maxEmails ?? 100;
+
+  // Build query
+  const queryParts: string[] = [];
+
+  if (options?.unreadOnly !== false) {
+    queryParts.push("is:unread");
+  }
+
+  if (options?.afterDate) {
+    const epochSeconds = Math.floor(options.afterDate.getTime() / 1000);
+    queryParts.push(`after:${epochSeconds}`);
+  }
+
+  const allMessages: { id: string; threadId: string }[] = [];
+  let pageToken: string | undefined;
+
+  // Paginate through all messages
+  do {
+    const response = await gmail.users.messages.list({
+      userId: "me",
+      maxResults: 50, // Fetch in batches of 50
+      pageToken,
+      q: queryParts.join(" ") || undefined,
+    });
+
+    const messages = response.data.messages || [];
+    allMessages.push(...messages.map((m) => ({ id: m.id!, threadId: m.threadId! })));
+
+    pageToken = response.data.nextPageToken || undefined;
+
+    // Safety limit
+    if (allMessages.length >= maxEmails) {
+      console.log(`Reached max emails limit (${maxEmails}), stopping pagination`);
+      break;
+    }
+  } while (pageToken);
+
+  // Fetch full details for each message
+  const emails: EmailMessage[] = [];
+
+  for (const msg of allMessages.slice(0, maxEmails)) {
+    const detail = await gmail.users.messages.get({
+      userId: "me",
+      id: msg.id,
+      format: "full",
+    });
+
+    const headers = detail.data.payload?.headers || [];
+    const subject =
+      headers.find((h) => h.name === "Subject")?.value || "(No Subject)";
+    const from = headers.find((h) => h.name === "From")?.value || "Unknown";
+    const dateHeader = headers.find((h) => h.name === "Date")?.value;
+
+    let body = "";
+    const payload = detail.data.payload;
+
+    if (payload?.body?.data) {
+      body = Buffer.from(payload.body.data, "base64").toString("utf-8");
+    } else if (payload?.parts) {
+      const textPart = payload.parts.find(
+        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html"
+      );
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
+      }
+    }
+
+    emails.push({
+      id: msg.id,
+      threadId: msg.threadId,
+      subject,
+      from,
+      snippet: detail.data.snippet || "",
+      body,
+      date: dateHeader ? new Date(dateHeader) : new Date(),
+      labelIds: detail.data.labelIds || [],
+    });
+  }
+
+  return emails;
+}
+
 export async function markAsRead(accessToken: string, messageId: string) {
   const gmail = getGmailClient(accessToken);
   await gmail.users.messages.modify({

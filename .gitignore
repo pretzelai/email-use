@@ -42,3 +42,6 @@ next-env.d.ts
 
 # trigger.dev
 .trigger
+
+# Stripe webhook secrets
+.stripe-webhook-secrets
