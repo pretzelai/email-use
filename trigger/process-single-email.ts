@@ -1,12 +1,13 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { db } from "@/lib/db";
-import { emailLogs, prompts, userSettings } from "@/lib/db/schema";
+import { emailLogs, prompts } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { processEmailWithTools, type AIProvider } from "@/lib/ai";
 import { executeAllTools } from "@/lib/gmail-tool-executor";
 import type { ToolCallResult } from "@/lib/ai-tools";
 import type { EmailMessage } from "@/lib/gmail";
 import { shouldSkipEmail, shouldSkipByPromptFilters } from "./helpers";
+import { billing } from "@/lib/billing";
 
 // Payload for the process-single-email task
 export interface ProcessEmailPayload {
@@ -89,12 +90,36 @@ export const processSingleEmailTask = task({
           createdAt: new Date(),
         });
         results.skipped++;
-        console.log(`Email skipped for prompt "${prompt.name}": ${promptSkipCheck.reason}`);
+        console.log(
+          `Email skipped for prompt "${prompt.name}": ${promptSkipCheck.reason}`
+        );
         continue;
       }
 
       try {
         // Get AI response with tool calls
+        const hasCredits = await billing.credits.hasCredits(
+          userId,
+          "email_processing",
+          1
+        );
+
+        if (!hasCredits) {
+          console.log(`User ${userId} has insufficient credits`);
+          await db.insert(emailLogs).values({
+            userId,
+            promptId: prompt.id,
+            gmailMessageId: email.id,
+            emailSubject: debugMode ? email.subject : null,
+            emailFrom: debugMode ? email.from : null,
+            emailSnippet: debugMode ? email.snippet : null,
+            status: "failed",
+            error: "Insufficient credits",
+            createdAt: new Date(),
+          });
+          results.failed++;
+          continue;
+        }
         const aiResult = await processEmailWithTools({
           promptText: prompt.promptText,
           email: {
@@ -107,6 +132,16 @@ export const processSingleEmailTask = task({
           provider: prompt.provider as AIProvider,
           model: prompt.model,
         });
+
+        const creditResult = await billing.credits.consume({
+          userId,
+          creditType: "email_processing",
+          amount: 1,
+        });
+
+        if (!creditResult.success) {
+          console.log(`Failed to consume credits for user ${userId}`);
+        }
 
         // Execute tools
         let executedActions: ToolCallResult[] = [];
@@ -133,9 +168,12 @@ export const processSingleEmailTask = task({
         });
 
         results.processed++;
-        console.log(`Email processed with prompt "${prompt.name}": ${executedActions.length} actions executed`);
+        console.log(
+          `Email processed with prompt "${prompt.name}": ${executedActions.length} actions executed`
+        );
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
 
         console.error(`Failed to process email with prompt "${prompt.name}":`, {
           error: errorMessage,
