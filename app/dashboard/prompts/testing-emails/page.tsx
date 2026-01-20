@@ -32,7 +32,7 @@ export default function AddTestingEmailsPage() {
     setSaveResult(null);
 
     try {
-      const res = await fetch(`/api/emails/fetch?limit=${emailCount}`);
+      const res = await fetch(`/api/emails/fetch?limit=${emailCount}&unreadOnly=false`);
       const data = await res.json();
       if (res.ok) {
         setFetchedEmails(data);

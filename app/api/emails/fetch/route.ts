@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "5");
+  const unreadOnly = searchParams.get("unreadOnly") !== "false";
 
   const gmailToken = await db.query.gmailTokens.findFirst({
     where: eq(gmailTokens.userId, session.user.id),
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const emails = await fetchNewEmails(accessToken, limit);
+    const emails = await fetchNewEmails(accessToken, limit, { unreadOnly });
     return NextResponse.json(emails);
   } catch (error) {
     console.error("Failed to fetch emails:", error);

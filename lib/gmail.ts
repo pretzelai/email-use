@@ -55,12 +55,17 @@ export async function fetchNewEmails(
   options?: {
     afterDate?: Date; // Only fetch emails after this date
     unreadOnly?: boolean; // Default true
+    inboxOnly?: boolean; // Default true - only fetch from inbox
   }
 ): Promise<EmailMessage[]> {
   const gmail = getGmailClient(accessToken);
 
   // Build query
   const queryParts: string[] = [];
+
+  if (options?.inboxOnly !== false) {
+    queryParts.push("in:inbox");
+  }
 
   if (options?.unreadOnly !== false) {
     queryParts.push("is:unread");
@@ -120,6 +125,9 @@ export async function fetchNewEmails(
       labelIds: detail.data.labelIds || [],
     });
   }
+
+  // Sort by date descending (most recent first)
+  emails.sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return emails;
 }
@@ -213,6 +221,9 @@ export async function fetchAllNewEmails(
       labelIds: detail.data.labelIds || [],
     });
   }
+
+  // Sort by date descending (most recent first)
+  emails.sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return emails;
 }
