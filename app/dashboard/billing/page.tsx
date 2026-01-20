@@ -14,7 +14,10 @@ export default async function BillingPage() {
   }
 
   const userId = session.user.id;
-  const apiCredits = await billing.credits.getBalance(userId, "email_processing");
+  const apiCredits = await billing.credits.getBalance(
+    userId,
+    "email_processing",
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -31,9 +34,6 @@ export default async function BillingPage() {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
           Email Processing
         </h2>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Your current credit balance
-        </p>
         <div className="mt-4">
           <span className="text-4xl font-bold text-zinc-900 dark:text-white">
             {apiCredits.toLocaleString()}
