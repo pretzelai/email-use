@@ -35,7 +35,7 @@ export const gmailTools = {
           .string()
           .optional()
           .describe(
-            "Optional hex color for the label background (e.g., '#ff0000'). Only applies to new labels."
+            "Optional hex color for the label background. Only applies when creating new labels. MUST be one of these exact values: #fb4c2f (red), #ffad47 (orange), #fad165 (yellow), #16a766 (green), #43d692 (teal), #4a86e8 (blue), #a479e2 (purple), #f691b3 (pink), #666666 (gray). Choose the closest match to the desired color."
           ),
       })
     ),

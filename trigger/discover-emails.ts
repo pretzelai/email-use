@@ -89,11 +89,18 @@ export const discoverEmailsTask = schedules.task({
         // Only process emails received AFTER the account was connected
         const accountConnectedAt = gmailToken.createdAt || new Date();
 
-        // Fetch all new emails (with pagination, up to 100 per user per run)
+        // Check if ALL prompts have skipRead/skipArchived enabled
+        // If so, we can optimize the fetch query
+        const allPromptsSkipRead = userPrompts.every((p) => p.skipRead === true);
+        const allPromptsSkipArchived = userPrompts.every((p) => p.skipArchived === true);
+
+        // Fetch all new emails (with pagination, up to 500 per user per run)
+        // Pass skip flags to optimize the query if all prompts agree
         const emails = await fetchAllNewEmails(accessToken, {
           afterDate: accountConnectedAt,
-          unreadOnly: false,
-          maxEmails: 100,
+          unreadOnly: allPromptsSkipRead,
+          inboxOnly: allPromptsSkipArchived,
+          maxEmails: 500,
         });
 
         console.log(`Found ${emails.length} emails for user ${userId}`);

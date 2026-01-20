@@ -138,16 +138,21 @@ export async function fetchAllNewEmails(
   options?: {
     afterDate?: Date;
     unreadOnly?: boolean;
-    maxEmails?: number; // Safety limit, defaults to 100
+    inboxOnly?: boolean; // Only fetch from inbox (skip archived)
+    maxEmails?: number; // Safety limit, defaults to 500
   }
 ): Promise<EmailMessage[]> {
   const gmail = getGmailClient(accessToken);
-  const maxEmails = options?.maxEmails ?? 100;
+  const maxEmails = options?.maxEmails ?? 500;
 
   // Build query
   const queryParts: string[] = [];
 
-  if (options?.unreadOnly !== false) {
+  if (options?.inboxOnly) {
+    queryParts.push("in:inbox");
+  }
+
+  if (options?.unreadOnly) {
     queryParts.push("is:unread");
   }
 
