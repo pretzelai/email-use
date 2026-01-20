@@ -1,9 +1,10 @@
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import { gmailTools } from "./ai-tools";
 
-export type AIProvider = "anthropic" | "openai";
+export type AIProvider = "anthropic" | "openai" | "google";
 
 export const AVAILABLE_MODELS = {
   anthropic: [
@@ -15,6 +16,10 @@ export const AVAILABLE_MODELS = {
     { id: "gpt-4o", name: "GPT-4o" },
     { id: "gpt-4o-mini", name: "GPT-4o Mini" },
     { id: "gpt-4-turbo", name: "GPT-4 Turbo" },
+  ],
+  google: [
+    { id: "gemini-3-pro-preview", name: "Gemini 3 Pro" },
+    { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
   ],
 } as const;
 
@@ -45,7 +50,11 @@ EMAIL:
 ${emailContent}`;
 
   const modelInstance =
-    provider === "anthropic" ? anthropic(model) : openai(model);
+    provider === "anthropic"
+      ? anthropic(model)
+      : provider === "google"
+        ? google(model)
+        : openai(model);
 
   const { text } = await generateText({
     model: modelInstance,
@@ -114,7 +123,11 @@ EMAIL:
 ${emailContent}`;
 
   const modelInstance =
-    provider === "anthropic" ? anthropic(model) : openai(model);
+    provider === "anthropic"
+      ? anthropic(model)
+      : provider === "google"
+        ? google(model)
+        : openai(model);
 
   const result = await generateText({
     model: modelInstance,

@@ -180,6 +180,7 @@ export function PromptForm({ prompt, mode, onPublishChange }: PromptFormProps) {
               >
                 <option value="anthropic">Anthropic (Claude)</option>
                 <option value="openai">OpenAI (GPT)</option>
+                <option value="google">Google (Gemini)</option>
               </Select>
             </div>
 

@@ -417,6 +417,7 @@ export default function EditPromptPage({
                   >
                     <option value="anthropic">Anthropic</option>
                     <option value="openai">OpenAI</option>
+                    <option value="google">Google</option>
                   </select>
                 </div>
                 <div className="flex-1">
