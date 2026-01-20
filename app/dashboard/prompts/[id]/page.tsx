@@ -260,53 +260,72 @@ export default function EditPromptPage({
       return [...newItems, ...filtered];
     });
 
-    try {
-      const res = await fetch(`/api/prompts/${id}/test`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emailIds: Array.from(selectedIds) }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const resultsMap = new Map<string, TestResult>();
-        data.results.forEach((r: TestResult) => {
-          resultsMap.set(r.emailId, r);
+    // Fire individual requests for each email in parallel
+    const promises = emailsToTest.map(async (email) => {
+      try {
+        const res = await fetch(`/api/prompts/${id}/test-single`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ emailId: email.id }),
         });
 
+        if (res.ok) {
+          const data = await res.json();
+          // Update this specific email's result immediately
+          setTestingItems((prev) =>
+            prev.map((item) =>
+              item.email.id === email.id
+                ? { ...item, status: "done", result: data.result }
+                : item
+            )
+          );
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          setTestingItems((prev) =>
+            prev.map((item) =>
+              item.email.id === email.id
+                ? {
+                    ...item,
+                    status: "done",
+                    result: {
+                      emailId: email.id,
+                      subject: email.subject,
+                      from: email.fromAddress,
+                      aiResponse: "",
+                      toolCalls: [],
+                      status: "failed",
+                      error: errorData.error || "Request failed",
+                    },
+                  }
+                : item
+            )
+          );
+        }
+      } catch (err) {
+        console.error(`Test failed for email ${email.id}:`, err);
         setTestingItems((prev) =>
-          prev.map((item) => {
-            const result = resultsMap.get(item.email.id);
-            if (result) {
-              return { ...item, status: "done", result };
-            }
-            return item;
-          })
+          prev.map((item) =>
+            item.email.id === email.id
+              ? {
+                  ...item,
+                  status: "done",
+                  result: {
+                    emailId: email.id,
+                    subject: email.subject,
+                    from: email.fromAddress,
+                    aiResponse: "",
+                    toolCalls: [],
+                    status: "failed",
+                    error: "Request failed",
+                  },
+                }
+              : item
+          )
         );
       }
-    } catch (err) {
-      console.error("Test failed:", err);
-      setTestingItems((prev) =>
-        prev.map((item) => {
-          if (item.status === "loading" && selectedIds.has(item.email.id)) {
-            return {
-              ...item,
-              status: "done",
-              result: {
-                emailId: item.email.id,
-                subject: item.email.subject,
-                from: item.email.fromAddress,
-                aiResponse: "",
-                toolCalls: [],
-                status: "failed",
-                error: "Request failed",
-              },
-            };
-          }
-          return item;
-        })
-      );
-    }
+    });
+
+    await Promise.allSettled(promises);
   };
 
   const toggleExpanded = (emailId: string) => {
