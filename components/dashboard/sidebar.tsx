@@ -9,6 +9,7 @@ const navigation = [
   { name: "Prompts", href: "/dashboard/prompts" },
   { name: "Logs", href: "/dashboard/logs" },
   { name: "Settings", href: "/dashboard/settings" },
+  { name: "Billing", href: "/dashboard/billing" },
 ];
 
 export function Sidebar() {
@@ -39,7 +40,7 @@ export function Sidebar() {
                   "block rounded px-2 py-1.5 text-sm transition-colors",
                   isActive
                     ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white",
                 )}
               >
                 {item.name}
