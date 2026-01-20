@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { userSettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { discoverEmailsForUserTask } from "@/trigger/discover-emails";
+import { tasks } from "@trigger.dev/sdk";
+import type { discoverEmailsForUserTask } from "@/trigger/discover-emails";
 
 export async function POST() {
   const session = await auth.api.getSession({
@@ -28,11 +29,12 @@ export async function POST() {
   }
 
   try {
-    const handle = await discoverEmailsForUserTask.trigger({
-      userId: session.user.id,
-    });
+    const { id } = await tasks.trigger<typeof discoverEmailsForUserTask>(
+      "discover-emails-for-user",
+      { userId: session.user.id },
+    );
 
-    return NextResponse.json({ success: true, id: handle.id });
+    return NextResponse.json({ success: true, id });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
