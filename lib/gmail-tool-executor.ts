@@ -51,8 +51,8 @@ export async function executeGmailTool(
       }
 
       case "addLabel": {
-        const { label } = args as { label: string };
-        const result = await addLabel(accessToken, email.id, label);
+        const { label, hexColor } = args as { label: string; hexColor?: string };
+        const result = await addLabel(accessToken, email.id, label, hexColor);
         return {
           tool: toolName,
           args,

@@ -31,6 +31,12 @@ export const gmailTools = {
           .describe(
             "Label name to add (e.g., 'Important', 'Follow-up', 'Newsletters')"
           ),
+        hexColor: z
+          .string()
+          .optional()
+          .describe(
+            "Optional hex color for the label background (e.g., '#ff0000'). Only applies to new labels."
+          ),
       })
     ),
   }),

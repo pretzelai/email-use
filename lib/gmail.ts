@@ -292,7 +292,8 @@ export async function listLabels(accessToken: string) {
 // Get or create a label
 export async function getOrCreateLabel(
   accessToken: string,
-  labelName: string
+  labelName: string,
+  hexColor?: string
 ): Promise<string> {
   const gmail = getGmailClient(accessToken);
 
@@ -306,14 +307,25 @@ export async function getOrCreateLabel(
     return existingLabel.id;
   }
 
-  // Create new label
+  // Create new label with optional color
+  const requestBody: {
+    name: string;
+    labelListVisibility: string;
+    messageListVisibility: string;
+    color?: { backgroundColor: string; textColor: string };
+  } = {
+    name: labelName,
+    labelListVisibility: "labelShow",
+    messageListVisibility: "show",
+  };
+
+  if (hexColor) {
+    requestBody.color = { backgroundColor: hexColor, textColor: "#000000" };
+  }
+
   const newLabel = await gmail.users.labels.create({
     userId: "me",
-    requestBody: {
-      name: labelName,
-      labelListVisibility: "labelShow",
-      messageListVisibility: "show",
-    },
+    requestBody,
   });
 
   return newLabel.data.id!;
@@ -323,10 +335,11 @@ export async function getOrCreateLabel(
 export async function addLabel(
   accessToken: string,
   messageId: string,
-  labelName: string
+  labelName: string,
+  hexColor?: string
 ) {
   const gmail = getGmailClient(accessToken);
-  const labelId = await getOrCreateLabel(accessToken, labelName);
+  const labelId = await getOrCreateLabel(accessToken, labelName, hexColor);
 
   await gmail.users.messages.modify({
     userId: "me",
