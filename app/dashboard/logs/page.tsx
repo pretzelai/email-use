@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 
 interface EmailLog {
@@ -24,22 +25,125 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [triggering, setTriggering] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLogCountRef = useRef<number>(0);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       const res = await fetch("/api/emails");
       if (res.ok) {
-        setLogs(await res.json());
+        const data = await res.json();
+        setLogs(data);
+        return data.length;
       }
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
+    return 0;
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      if (res.ok) {
+        const data = await res.json();
+        setDebugMode(data.debugMode);
+      }
+    } catch {
+      // ignore
+    }
   };
+
+  const handleDeleteAllLogs = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete all logs? This will allow previously processed emails to be reprocessed by your prompts."
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/emails", { method: "DELETE" });
+      if (res.ok) {
+        setLogs([]);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const stopTimerAndPolling = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    setTriggering(false);
+    setElapsedTime(0);
+  }, []);
+
+  const handleTriggerDiscovery = async () => {
+    setTriggering(true);
+    setElapsedTime(0);
+    initialLogCountRef.current = logs.length;
+
+    // Start elapsed time timer (updates every 100ms for 1 decimal precision)
+    const startTime = Date.now();
+    timerRef.current = setInterval(() => {
+      setElapsedTime((Date.now() - startTime) / 1000);
+    }, 100);
+
+    try {
+      const res = await fetch("/api/trigger-discovery", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(`Failed to trigger: ${data.error}`);
+        stopTimerAndPolling();
+        return;
+      }
+
+      // Poll for new logs every 2 seconds
+      pollRef.current = setInterval(async () => {
+        const newCount = await fetchLogs();
+        if (newCount > initialLogCountRef.current) {
+          stopTimerAndPolling();
+        }
+      }, 2000);
+
+      // Stop after 60 seconds max
+      setTimeout(() => {
+        if (triggering) {
+          stopTimerAndPolling();
+        }
+      }, 60000);
+    } catch {
+      alert("Failed to trigger discovery job");
+      stopTimerAndPolling();
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     fetchLogs();
+    fetchSettings();
   }, []);
 
   const selectedLog = logs.find((l) => l.id === selectedLogId);
@@ -60,7 +164,57 @@ export default function LogsPage() {
           <h1 className="text-base font-medium text-zinc-900 dark:text-white">
             Logs
           </h1>
-          <span className="text-sm text-zinc-500">{logs.length} processed</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-zinc-500">{logs.length} processed</span>
+            {debugMode && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTriggerDiscovery}
+                  disabled={triggering}
+                >
+                  {triggering ? (
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      {elapsedTime.toFixed(1)}s
+                    </span>
+                  ) : (
+                    "Trigger Cron Job"
+                  )}
+                </Button>
+                {logs.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDeleteAllLogs}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete All Logs"}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
         <p className="mt-1 text-sm text-zinc-500">
           If you want to store email content and AI logs for debugging, go to{" "}
@@ -71,6 +225,11 @@ export default function LogsPage() {
             settings
           </Link>{" "}
           and activate Debug Mode.
+          {debugMode && (
+            <span className="ml-1 text-zinc-400">
+              Deleting logs will allow those emails to be reprocessed.
+            </span>
+          )}
         </p>
       </div>
 
