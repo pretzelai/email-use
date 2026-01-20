@@ -80,9 +80,6 @@ async function discoverEmailsForUser(
     });
     const debugMode = settings?.debugMode ?? false;
 
-    // Only process emails received AFTER the account was connected
-    const accountConnectedAt = gmailToken.createdAt || new Date();
-
     // Check if ALL prompts have skipRead/skipArchived enabled
     const allPromptsSkipRead = userPrompts.every((p) => p.skipRead === true);
     const allPromptsSkipArchived = userPrompts.every(
@@ -91,7 +88,6 @@ async function discoverEmailsForUser(
 
     // Fetch all new emails (with pagination, up to 500 per user per run)
     const emails = await fetchAllNewEmails(accessToken, {
-      afterDate: accountConnectedAt,
       unreadOnly: allPromptsSkipRead,
       inboxOnly: allPromptsSkipArchived,
       maxEmails: 500,
