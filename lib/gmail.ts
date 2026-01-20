@@ -1,9 +1,10 @@
 import { google } from "googleapis";
+import { GMAIL_LABEL_COLORS } from "./utils";
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.BETTER_AUTH_URL}/api/gmail/callback`
+  `${process.env.BETTER_AUTH_URL}/api/gmail/callback`,
 );
 
 // Scopes needed for Gmail access
@@ -56,7 +57,7 @@ export async function fetchNewEmails(
     afterDate?: Date; // Only fetch emails after this date
     unreadOnly?: boolean; // Default true
     inboxOnly?: boolean; // Default true - only fetch from inbox
-  }
+  },
 ): Promise<EmailMessage[]> {
   const gmail = getGmailClient(accessToken);
 
@@ -107,7 +108,7 @@ export async function fetchNewEmails(
       body = Buffer.from(payload.body.data, "base64").toString("utf-8");
     } else if (payload?.parts) {
       const textPart = payload.parts.find(
-        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html"
+        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html",
       );
       if (textPart?.body?.data) {
         body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
@@ -140,7 +141,7 @@ export async function fetchAllNewEmails(
     unreadOnly?: boolean;
     inboxOnly?: boolean; // Only fetch from inbox (skip archived)
     maxEmails?: number; // Safety limit, defaults to 500
-  }
+  },
 ): Promise<EmailMessage[]> {
   const gmail = getGmailClient(accessToken);
   const maxEmails = options?.maxEmails ?? 500;
@@ -174,13 +175,17 @@ export async function fetchAllNewEmails(
     });
 
     const messages = response.data.messages || [];
-    allMessages.push(...messages.map((m) => ({ id: m.id!, threadId: m.threadId! })));
+    allMessages.push(
+      ...messages.map((m) => ({ id: m.id!, threadId: m.threadId! })),
+    );
 
     pageToken = response.data.nextPageToken || undefined;
 
     // Safety limit
     if (allMessages.length >= maxEmails) {
-      console.log(`Reached max emails limit (${maxEmails}), stopping pagination`);
+      console.log(
+        `Reached max emails limit (${maxEmails}), stopping pagination`,
+      );
       break;
     }
   } while (pageToken);
@@ -208,7 +213,7 @@ export async function fetchAllNewEmails(
       body = Buffer.from(payload.body.data, "base64").toString("utf-8");
     } else if (payload?.parts) {
       const textPart = payload.parts.find(
-        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html"
+        (p) => p.mimeType === "text/plain" || p.mimeType === "text/html",
       );
       if (textPart?.body?.data) {
         body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
@@ -309,17 +314,31 @@ export async function listLabels(accessToken: string) {
 export async function getOrCreateLabel(
   accessToken: string,
   labelName: string,
-  hexColor?: string
+  hexColor?: string,
 ): Promise<string> {
   const gmail = getGmailClient(accessToken);
 
   // First, try to find existing label
   const labels = await listLabels(accessToken);
   const existingLabel = labels.find(
-    (l) => l.name?.toLowerCase() === labelName.toLowerCase()
+    (l) => l.name?.toLowerCase() === labelName.toLowerCase(),
   );
 
   if (existingLabel?.id) {
+    // Update color if provided
+    if (hexColor) {
+      const normalizedColor = hexColor.toLowerCase();
+      const textColor = GMAIL_LABEL_COLORS[normalizedColor];
+      if (textColor) {
+        await gmail.users.labels.patch({
+          userId: "me",
+          id: existingLabel.id,
+          requestBody: {
+            color: { backgroundColor: normalizedColor, textColor },
+          },
+        });
+      }
+    }
     return existingLabel.id;
   }
 
@@ -336,7 +355,11 @@ export async function getOrCreateLabel(
   };
 
   if (hexColor) {
-    requestBody.color = { backgroundColor: hexColor, textColor: "#000000" };
+    const normalizedColor = hexColor.toLowerCase();
+    const textColor = GMAIL_LABEL_COLORS[normalizedColor];
+    if (textColor) {
+      requestBody.color = { backgroundColor: normalizedColor, textColor };
+    }
   }
 
   const newLabel = await gmail.users.labels.create({
@@ -352,7 +375,7 @@ export async function addLabel(
   accessToken: string,
   messageId: string,
   labelName: string,
-  hexColor?: string
+  hexColor?: string,
 ) {
   const gmail = getGmailClient(accessToken);
   const labelId = await getOrCreateLabel(accessToken, labelName, hexColor);
@@ -374,7 +397,7 @@ export async function sendEmail(
   to: string,
   subject: string,
   body: string,
-  replyToMessageId?: string
+  replyToMessageId?: string,
 ) {
   const gmail = getGmailClient(accessToken);
 
@@ -401,7 +424,7 @@ export async function sendEmail(
     });
 
     const messageIdHeader = originalMessage.data.payload?.headers?.find(
-      (h) => h.name === "Message-ID"
+      (h) => h.name === "Message-ID",
     )?.value;
 
     if (messageIdHeader) {

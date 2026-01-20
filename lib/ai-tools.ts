@@ -1,5 +1,6 @@
 import { tool, zodSchema } from "ai";
 import { z } from "zod";
+import { GMAIL_LABEL_COLORS } from "./utils";
 
 // Gmail tools for AI to use when processing emails
 export const gmailTools = {
@@ -15,9 +16,9 @@ export const gmailTools = {
           .boolean()
           .optional()
           .describe(
-            "Set to true if this is a reply to the current email (will thread the conversation)"
+            "Set to true if this is a reply to the current email (will thread the conversation)",
           ),
-      })
+      }),
     ),
   }),
 
@@ -29,15 +30,15 @@ export const gmailTools = {
         label: z
           .string()
           .describe(
-            "Label name to add (e.g., 'Important', 'Follow-up', 'Newsletters')"
+            "Label name to add (e.g., 'Important', 'Follow-up', 'Newsletters')",
           ),
         hexColor: z
           .string()
           .optional()
           .describe(
-            "Optional hex color for the label background. Only applies when creating new labels. MUST be one of these exact values: #fb4c2f (red), #ffad47 (orange), #fad165 (yellow), #16a766 (green), #43d692 (teal), #4a86e8 (blue), #a479e2 (purple), #f691b3 (pink), #666666 (gray). Choose the closest match to the desired color."
+            `Optional hex color for the label background. Only applies when creating new labels. MUST be one of these exact values: ${Object.keys(GMAIL_LABEL_COLORS).join(", ")}`,
           ),
-      })
+      }),
     ),
   }),
 
