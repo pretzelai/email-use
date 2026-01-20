@@ -31,7 +31,8 @@ export default function LogsPage() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
-  const initialLogCountRef = useRef<number>(0);
+  const lastNewLogTimeRef = useRef<number>(0);
+  const currentLogCountRef = useRef<number>(0);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -96,7 +97,8 @@ export default function LogsPage() {
   const handleTriggerDiscovery = async () => {
     setTriggering(true);
     setElapsedTime(0);
-    initialLogCountRef.current = logs.length;
+    currentLogCountRef.current = logs.length;
+    lastNewLogTimeRef.current = Date.now();
 
     // Start elapsed time timer (updates every 100ms for 1 decimal precision)
     const startTime = Date.now();
@@ -116,17 +118,24 @@ export default function LogsPage() {
       // Poll for new logs every 2 seconds
       pollRef.current = setInterval(async () => {
         const newCount = await fetchLogs();
-        if (newCount > initialLogCountRef.current) {
+        const now = Date.now();
+
+        if (newCount > currentLogCountRef.current) {
+          // New logs found, update count and reset the timer
+          currentLogCountRef.current = newCount;
+          lastNewLogTimeRef.current = now;
+          // Stop showing spinner/timer but keep polling in background
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          setTriggering(false);
+          setElapsedTime(0);
+        } else if (now - lastNewLogTimeRef.current >= 60000) {
+          // No new logs in the last 60 seconds, stop polling
           stopTimerAndPolling();
         }
       }, 2000);
-
-      // Stop after 60 seconds max
-      setTimeout(() => {
-        if (triggering) {
-          stopTimerAndPolling();
-        }
-      }, 60000);
     } catch {
       alert("Failed to trigger discovery job");
       stopTimerAndPolling();
@@ -165,7 +174,6 @@ export default function LogsPage() {
             Logs
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500">{logs.length} processed</span>
             {debugMode && (
               <>
                 <Button
