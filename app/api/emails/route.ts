@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       emailFrom: emailLogs.emailFrom,
       emailSnippet: emailLogs.emailSnippet,
       aiResponse: emailLogs.aiResponse,
+      actionsExecuted: emailLogs.actionsExecuted,
       status: emailLogs.status,
       error: emailLogs.error,
       processedAt: emailLogs.processedAt,

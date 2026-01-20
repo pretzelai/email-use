@@ -6,6 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 
+interface ActionExecuted {
+  tool: string;
+  args: Record<string, unknown>;
+  result: {
+    success: boolean;
+    data?: unknown;
+    error?: string;
+  };
+}
+
 interface EmailLog {
   id: string;
   gmailMessageId: string;
@@ -13,6 +23,7 @@ interface EmailLog {
   emailFrom: string | null;
   emailSnippet: string | null;
   aiResponse: string | null;
+  actionsExecuted: ActionExecuted[] | null;
   status: string | null;
   error: string | null;
   processedAt: string | null;
@@ -358,6 +369,65 @@ export default function LogsPage() {
                     <span className="font-medium">Debug Mode</span> in Settings.
                   </p>
                 </div>
+                {selectedLog.actionsExecuted &&
+                  selectedLog.actionsExecuted.length > 0 && (
+                    <div>
+                      <p className="text-xs text-zinc-500">Tool Calls</p>
+                      <div className="mt-1 space-y-2">
+                        {selectedLog.actionsExecuted.map((action, index) => (
+                          <div
+                            key={index}
+                            className="rounded border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                {action.tool}
+                              </span>
+                              <Badge
+                                variant={
+                                  action.result.success
+                                    ? "success"
+                                    : "destructive"
+                                }
+                              >
+                                {action.result.success ? "Success" : "Failed"}
+                              </Badge>
+                            </div>
+                            <div className="mt-1.5">
+                              <p className="text-xs text-zinc-500">Arguments:</p>
+                              <div className="mt-0.5 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                {Object.entries(action.args).map(([key, value]) => (
+                                  <div key={key} className="flex items-center gap-2">
+                                    <span className="font-medium">{key}:</span>
+                                    {key === "hexColor" && typeof value === "string" ? (
+                                      <span className="flex items-center gap-1.5">
+                                        <span
+                                          className="inline-block h-3.5 w-3.5 rounded border border-zinc-300 dark:border-zinc-600"
+                                          style={{ backgroundColor: value }}
+                                        />
+                                        <span>{value}</span>
+                                      </span>
+                                    ) : (
+                                      <span>
+                                        {typeof value === "string"
+                                          ? value
+                                          : JSON.stringify(value)}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            {action.result.error && (
+                              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                Error: {action.result.error}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 <div className="flex gap-3 text-xs text-zinc-500">
                   <span>Prompt: {selectedLog.promptName || "—"}</span>
                   <span>Processed: {formatDate(selectedLog.processedAt)}</span>
@@ -375,10 +445,69 @@ export default function LogsPage() {
                   <p className="text-xs text-zinc-500">AI Response</p>
                   <pre className="mt-1 whitespace-pre-wrap rounded bg-zinc-50 p-2 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                     {selectedLog.status === "processed"
-                      ? selectedLog.aiResponse
+                      ? selectedLog.aiResponse || "No text response"
                       : `Error: ${selectedLog.error || "Unknown"}`}
                   </pre>
                 </div>
+                {selectedLog.actionsExecuted &&
+                  selectedLog.actionsExecuted.length > 0 && (
+                    <div>
+                      <p className="text-xs text-zinc-500">Tool Calls</p>
+                      <div className="mt-1 space-y-2">
+                        {selectedLog.actionsExecuted.map((action, index) => (
+                          <div
+                            key={index}
+                            className="rounded border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                {action.tool}
+                              </span>
+                              <Badge
+                                variant={
+                                  action.result.success
+                                    ? "success"
+                                    : "destructive"
+                                }
+                              >
+                                {action.result.success ? "Success" : "Failed"}
+                              </Badge>
+                            </div>
+                            <div className="mt-1.5">
+                              <p className="text-xs text-zinc-500">Arguments:</p>
+                              <div className="mt-0.5 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                {Object.entries(action.args).map(([key, value]) => (
+                                  <div key={key} className="flex items-center gap-2">
+                                    <span className="font-medium">{key}:</span>
+                                    {key === "hexColor" && typeof value === "string" ? (
+                                      <span className="flex items-center gap-1.5">
+                                        <span
+                                          className="inline-block h-3.5 w-3.5 rounded border border-zinc-300 dark:border-zinc-600"
+                                          style={{ backgroundColor: value }}
+                                        />
+                                        <span>{value}</span>
+                                      </span>
+                                    ) : (
+                                      <span>
+                                        {typeof value === "string"
+                                          ? value
+                                          : JSON.stringify(value)}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            {action.result.error && (
+                              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                Error: {action.result.error}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 <div className="flex gap-3 text-xs text-zinc-500">
                   <span>Prompt: {selectedLog.promptName || "—"}</span>
                   <span>Processed: {formatDate(selectedLog.processedAt)}</span>
