@@ -19,7 +19,7 @@
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "stripe": "^20.2.0",
-        "stripe-no-webhooks": "^0.0.12",
+        "stripe-no-webhooks": "^0.0.13",
         "tailwind-merge": "^3.4.0",
       },
       "devDependencies": {
@@ -1203,7 +1203,7 @@
 
     "stripe": ["stripe@20.2.0", "", { "dependencies": { "qs": "^6.14.1" }, "peerDependencies": { "@types/node": ">=16" }, "optionalPeers": ["@types/node"] }, "sha512-m8niTfdm3nPP/yQswRWMwQxqEUcTtB3RTJQ9oo6NINDzgi7aPOadsH/fPXIIfL1Sc5+lqQFKSk7WiO6CXmvaeA=="],
 
-    "stripe-no-webhooks": ["stripe-no-webhooks@0.0.12", "", { "dependencies": { "@pretzelai/stripe-sync-engine": "^0.48.3", "dotenv": "^17.2.3", "pg": "^8.13.1" }, "peerDependencies": { "stripe": ">=14.0.0" }, "bin": { "stripe-no-webhooks": "bin/cli.js" } }, "sha512-8EULjza4gtFurR7LfaXW25fd1lhWifCPfhiYLYMaRH0kvMFPDPUCAnk3Fv9Oabj4IMGUy/XQj2M7+lWYVcvHuQ=="],
+    "stripe-no-webhooks": ["stripe-no-webhooks@0.0.13", "", { "dependencies": { "@pretzelai/stripe-sync-engine": "^0.48.3", "dotenv": "^17.2.3", "pg": "^8.13.1" }, "peerDependencies": { "stripe": ">=14.0.0" }, "bin": { "stripe-no-webhooks": "bin/cli.js" } }, "sha512-ZJk8PSpY2k5sIn/MBNeVjTcrfP6+XBVY1CjUTv1xnX8oEVVZ+GFWg41ZHuYUep6rQuspdAtTzkVBYReonxu7YQ=="],
 
     "styled-jsx": ["styled-jsx@5.1.6", "", { "dependencies": { "client-only": "0.0.1" }, "peerDependencies": { "react": ">= 16.8.0 || 17.x.x || ^18.0.0-0 || ^19.0.0-0" } }, "sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA=="],
 
