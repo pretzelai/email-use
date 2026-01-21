@@ -64,7 +64,7 @@ export const processSingleEmailTask = task({
         eq(prompts.userId, userId),
         eq(prompts.isActive, true),
         eq(prompts.isPublished, true),
-        inArray(prompts.id, promptIds)
+        inArray(prompts.id, promptIds),
       ),
     });
 
@@ -91,18 +91,18 @@ export const processSingleEmailTask = task({
         });
         results.skipped++;
         console.log(
-          `Email skipped for prompt "${prompt.name}": ${promptSkipCheck.reason}`
+          `Email skipped for prompt "${prompt.name}": ${promptSkipCheck.reason}`,
         );
         continue;
       }
 
       try {
         // Get AI response with tool calls
-        const hasCredits = await billing.credits.hasCredits(
+        const hasCredits = await billing.credits.hasCredits({
           userId,
-          "email_processing",
-          1
-        );
+          key: "email_processing",
+          amount: 1,
+        });
 
         if (!hasCredits) {
           console.log(`User ${userId} has insufficient credits`);
@@ -135,7 +135,7 @@ export const processSingleEmailTask = task({
 
         const creditResult = await billing.credits.consume({
           userId,
-          creditType: "email_processing",
+          key: "email_processing",
           amount: 1,
         });
 
@@ -149,7 +149,7 @@ export const processSingleEmailTask = task({
           executedActions = await executeAllTools(
             aiResult.toolCalls,
             { id: email.id, from: email.from, subject: email.subject },
-            accessToken
+            accessToken,
           );
         }
 
@@ -169,7 +169,7 @@ export const processSingleEmailTask = task({
 
         results.processed++;
         console.log(
-          `Email processed with prompt "${prompt.name}": ${executedActions.length} actions executed`
+          `Email processed with prompt "${prompt.name}": ${executedActions.length} actions executed`,
         );
       } catch (error) {
         const errorMessage =

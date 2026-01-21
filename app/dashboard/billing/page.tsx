@@ -14,10 +14,10 @@ export default async function BillingPage() {
   }
 
   const userId = session.user.id;
-  const apiCredits = await billing.credits.getBalance(
+  const apiCredits = await billing.credits.getBalance({
     userId,
-    "email_processing",
-  );
+    key: "email_processing",
+  });
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
