@@ -24,7 +24,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "stripe": "^20.2.0",
-    "stripe-no-webhooks": "^0.0.13",
+    "stripe-no-webhooks": "^0.0.14",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
