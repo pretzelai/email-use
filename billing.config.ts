@@ -14,10 +14,10 @@ const billingConfig: BillingConfig = {
             interval: "month",
           },
         ],
-        credits: {
+        features: {
           email_processing: {
-            allocation: 10000,
-            displayName: "Email Credits",
+            displayName: "Emails",
+            credits: { allocation: 10000 },
           },
         },
       },

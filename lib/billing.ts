@@ -10,7 +10,7 @@ import { headers } from "next/headers";
 // Initialize once, use everywhere
 export const billing = new Billing({
   billingConfig,
-
+  
   // Keys and database URL are read from environment variables by default:
   // - STRIPE_SECRET_KEY
   // - STRIPE_WEBHOOK_SECRET
@@ -19,6 +19,9 @@ export const billing = new Billing({
   // REQUIRED: URLs for checkout redirects
   successUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   cancelUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+
+  // OPTIONAL: URL to redirect to when resolveUser returns null (user not logged in).
+  loginUrl: "/sign-in",
 
   // REQUIRED: Return { id, email?, name? } or null if not authenticated
   // Email/name are used when creating a new Stripe customer
