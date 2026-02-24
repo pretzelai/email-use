@@ -8,9 +8,8 @@ export type AIProvider = "anthropic" | "openai" | "google";
 
 export const AVAILABLE_MODELS = {
   anthropic: [
-    { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4" },
-    { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
-    { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
+    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+    { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
   ],
   openai: [
     { id: "gpt-4o", name: "GPT-4o" },
